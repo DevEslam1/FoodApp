@@ -1,12 +1,14 @@
 import { Link, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,23 +21,23 @@ export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const passwordInputRef = useRef<TextInput>(null);
   const canLogin = email.trim().length > 0 && password.trim().length > 0;
 
   const handleLogin = () => {
+    Keyboard.dismiss();
     router.replace("/home");
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.root}>
       <AuthDecoration />
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.keyboard}
-      >
+      <SafeAreaView edges={["top", "bottom"]} style={styles.safeArea}>
         <ScrollView
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
           bounces={false}
           contentContainerStyle={styles.scrollContent}
+          keyboardDismissMode={Platform.OS === "ios" ? "on-drag" : "none"}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -66,20 +68,26 @@ export default function LoginScreen() {
                 maxLength={40}
                 onChangeText={setEmail}
                 placeholder="user123@email.com"
+                returnKeyType="next"
                 style={styles.inputText}
                 textContentType="emailAddress"
                 value={email}
+                onSubmitEditing={() => passwordInputRef.current?.focus()}
               />
 
               <CustomInput
                 autoCapitalize="none"
                 autoCorrect={false}
                 autoComplete="password"
+                blurOnSubmit
                 label="Password"
                 iconName="lock-closed-outline"
                 maxLength={20}
                 onChangeText={setPassword}
+                onSubmitEditing={handleLogin}
                 placeholder="Enter your password"
+                ref={passwordInputRef}
+                returnKeyType="done"
                 secureTextEntry
                 style={styles.inputText}
                 textContentType="password"
@@ -92,7 +100,6 @@ export default function LoginScreen() {
               />
 
               <AuthButton
-                disabled={!canLogin}
                 label="LOGIN"
                 onPress={handleLogin}
                 style={styles.buttonContainer}
@@ -100,12 +107,15 @@ export default function LoginScreen() {
             </View>
           </AuthCard>
         </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   safeArea: {
     flex: 1,
   },

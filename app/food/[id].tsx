@@ -5,12 +5,12 @@ import {
   Alert,
   Image,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ingredientImageSources, menuVisualSources } from "@/constants/menuAssets";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -25,14 +25,16 @@ export default function FoodDetailsScreen() {
 
   if (!item) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.missingState}>
-          <Text style={styles.missingTitle}>Food item not found</Text>
-          <Pressable onPress={() => router.replace("/home")} style={styles.missingButton}>
-            <Text style={styles.missingButtonText}>Back to home</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+      <View style={styles.root}>
+        <SafeAreaView edges={["top"]} style={styles.safeArea}>
+          <View style={styles.missingState}>
+            <Text style={styles.missingTitle}>Food item not found</Text>
+            <Pressable onPress={() => router.replace("/home")} style={styles.missingButton}>
+              <Text style={styles.missingButtonText}>Back to home</Text>
+            </Pressable>
+          </View>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -44,91 +46,96 @@ export default function FoodDetailsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.topRow}>
-          <Pressable onPress={() => router.back()} style={styles.iconButton}>
-            <Ionicons color="#231E19" name="chevron-back" size={22} />
-          </Pressable>
+    <View style={styles.root}>
+      <SafeAreaView edges={["top"]} style={styles.safeArea}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.topRow}>
+            <Pressable onPress={() => router.back()} style={styles.iconButton}>
+              <Ionicons color="#231E19" name="chevron-back" size={22} />
+            </Pressable>
 
-          <Pressable
-            onPress={() => dispatch(toggleFavorite(item.id))}
-            style={[styles.iconButton, item.isFavorite && styles.favoriteButton]}
-          >
-            <Ionicons
-              color={item.isFavorite ? "#FFFFFF" : "#231E19"}
-              name={item.isFavorite ? "star" : "star-outline"}
-              size={20}
-            />
-          </Pressable>
-        </View>
-
-        <View style={styles.heroRow}>
-          <View style={styles.copyBlock}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.price}>${item.price.toFixed(2)}</Text>
-            <Text style={styles.reviewText}>
-              {item.rating.toFixed(1)} rating from {item.reviewCount} reviews
-            </Text>
-
-            <View style={styles.metricGroup}>
-              <Text style={styles.metricLabel}>Size</Text>
-              <Text style={styles.metricValue}>{item.sizeLabel}</Text>
-            </View>
-
-            <View style={styles.metricGroup}>
-              <Text style={styles.metricLabel}>Crust</Text>
-              <Text style={styles.metricValue}>{item.crustLabel}</Text>
-            </View>
-
-            <View style={styles.metricGroup}>
-              <Text style={styles.metricLabel}>Delivery in</Text>
-              <Text style={styles.metricValue}>{item.deliveryMinutes} min</Text>
-            </View>
-          </View>
-
-          <View style={styles.imageWrap}>
-            <Image source={imageSource} style={styles.heroImage} resizeMode="contain" />
-          </View>
-        </View>
-
-        <View style={styles.descriptionCard}>
-          <Text style={styles.descriptionText}>{item.description}</Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>Ingredients</Text>
-
-        <View style={styles.ingredientRow}>
-          {item.ingredientNames.map((ingredient, index) => (
-            <View key={`${ingredient}-${index}`} style={styles.ingredientCard}>
-              <Image
-                source={ingredientImageSources[item.ingredientKeys[index]]}
-                style={styles.ingredientImage}
-                resizeMode="contain"
+            <Pressable
+              onPress={() => dispatch(toggleFavorite(item.id))}
+              style={[styles.iconButton, item.isFavorite && styles.favoriteButton]}
+            >
+              <Ionicons
+                color={item.isFavorite ? "#FFFFFF" : "#231E19"}
+                name={item.isFavorite ? "star" : "star-outline"}
+                size={20}
               />
-              <Text numberOfLines={2} style={styles.ingredientLabel}>
-                {ingredient}
-              </Text>
-            </View>
-          ))}
-        </View>
+            </Pressable>
+          </View>
 
-        <Pressable onPress={handleOrder} style={styles.orderButton}>
-          <Text style={styles.orderButtonText}>Place an order</Text>
-          <Ionicons color="#231E19" name="chevron-forward" size={18} />
-        </Pressable>
-      </ScrollView>
-    </SafeAreaView>
+          <View style={styles.heroRow}>
+            <View style={styles.copyBlock}>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.price}>${item.price.toFixed(2)}</Text>
+              <Text style={styles.reviewText}>
+                {item.rating.toFixed(1)} rating from {item.reviewCount} reviews
+              </Text>
+
+              <View style={styles.metricGroup}>
+                <Text style={styles.metricLabel}>Size</Text>
+                <Text style={styles.metricValue}>{item.sizeLabel}</Text>
+              </View>
+
+              <View style={styles.metricGroup}>
+                <Text style={styles.metricLabel}>Crust</Text>
+                <Text style={styles.metricValue}>{item.crustLabel}</Text>
+              </View>
+
+              <View style={styles.metricGroup}>
+                <Text style={styles.metricLabel}>Delivery in</Text>
+                <Text style={styles.metricValue}>{item.deliveryMinutes} min</Text>
+              </View>
+            </View>
+
+            <View style={styles.imageWrap}>
+              <Image source={imageSource} style={styles.heroImage} resizeMode="contain" />
+            </View>
+          </View>
+
+          <View style={styles.descriptionCard}>
+            <Text style={styles.descriptionText}>{item.description}</Text>
+          </View>
+
+          <Text style={styles.sectionTitle}>Ingredients</Text>
+
+          <View style={styles.ingredientRow}>
+            {item.ingredientNames.map((ingredient, index) => (
+              <View key={`${ingredient}-${index}`} style={styles.ingredientCard}>
+                <Image
+                  source={ingredientImageSources[item.ingredientKeys[index]]}
+                  style={styles.ingredientImage}
+                  resizeMode="contain"
+                />
+                <Text numberOfLines={2} style={styles.ingredientLabel}>
+                  {ingredient}
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          <Pressable onPress={handleOrder} style={styles.orderButton}>
+            <Text style={styles.orderButtonText}>Place an order</Text>
+            <Ionicons color="#231E19" name="chevron-forward" size={18} />
+          </Pressable>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  root: {
     flex: 1,
     backgroundColor: "#F6F4EF",
+  },
+  safeArea: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: 20,

@@ -1,12 +1,14 @@
 import { Link, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,6 +23,9 @@ export default function SignupScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const emailInputRef = useRef<TextInput>(null);
+  const passwordInputRef = useRef<TextInput>(null);
+  const confirmPasswordInputRef = useRef<TextInput>(null);
 
   const canSignup =
     fullName.trim().length > 0 &&
@@ -29,20 +34,19 @@ export default function SignupScreen() {
     confirmPassword.trim().length > 0;
 
   const handleSignup = () => {
+    Keyboard.dismiss();
     router.replace("/home");
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.root}>
       <AuthDecoration />
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.keyboard}
-      >
+      <SafeAreaView edges={["top", "bottom"]} style={styles.safeArea}>
         <ScrollView
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
           bounces={false}
           contentContainerStyle={styles.scrollContent}
+          keyboardDismissMode={Platform.OS === "ios" ? "on-drag" : "none"}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -71,7 +75,9 @@ export default function SignupScreen() {
                 iconName="person-outline"
                 maxLength={30}
                 onChangeText={setFullName}
+                onSubmitEditing={() => emailInputRef.current?.focus()}
                 placeholder="Jhone Williams"
+                returnKeyType="next"
                 style={styles.inputText}
                 textContentType="name"
                 value={fullName}
@@ -86,7 +92,10 @@ export default function SignupScreen() {
                 iconName="mail-outline"
                 maxLength={40}
                 onChangeText={setEmail}
+                onSubmitEditing={() => passwordInputRef.current?.focus()}
                 placeholder="Enter your email"
+                ref={emailInputRef}
+                returnKeyType="next"
                 style={styles.inputText}
                 textContentType="emailAddress"
                 value={email}
@@ -100,7 +109,10 @@ export default function SignupScreen() {
                 iconName="lock-closed-outline"
                 maxLength={20}
                 onChangeText={setPassword}
+                onSubmitEditing={() => confirmPasswordInputRef.current?.focus()}
                 placeholder="Create password"
+                ref={passwordInputRef}
+                returnKeyType="next"
                 secureTextEntry
                 style={styles.inputText}
                 textContentType="newPassword"
@@ -115,7 +127,10 @@ export default function SignupScreen() {
                 iconName="lock-closed-outline"
                 maxLength={20}
                 onChangeText={setConfirmPassword}
+                onSubmitEditing={handleSignup}
                 placeholder="Confirm password"
+                ref={confirmPasswordInputRef}
+                returnKeyType="done"
                 secureTextEntry
                 style={styles.inputText}
                 textContentType="password"
@@ -131,12 +146,15 @@ export default function SignupScreen() {
             </View>
           </AuthCard>
         </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   safeArea: {
     flex: 1,
   },

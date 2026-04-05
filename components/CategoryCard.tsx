@@ -21,13 +21,24 @@ export default function CategoryCard({
       onPress={onPress}
       style={[styles.card, active ? styles.cardActive : styles.cardIdle]}
     >
-      <Image source={categoryIconSources[category.id]} style={styles.icon} resizeMode="contain" />
-      <Text style={[styles.label, active && styles.labelActive]}>{category.label}</Text>
-      <View style={[styles.circle, active ? styles.circleActive : styles.circleIdle]}>
+      <Image
+        source={categoryIconSources[category.id]}
+        style={styles.icon}
+        resizeMode="contain"
+      />
+      <Text style={[styles.label, active && styles.labelActive]}>
+        {category.label}
+      </Text>
+      <View
+        style={[
+          styles.circle,
+          active ? styles.circleActive : styles.circleIdle,
+        ]}
+      >
         <Ionicons
           color={active ? "#1F1A17" : "#FFFFFF"}
           name="arrow-forward"
-          size={16}
+          size={15}
         />
       </View>
     </Pressable>

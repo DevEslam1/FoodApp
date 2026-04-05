@@ -18,6 +18,7 @@
         "backgroundImage": "./assets/images/pizza-icon.png",
         "monochromeImage": "./assets/images/pizza-icon.png"
       },
+      "softwareKeyboardLayoutMode": "resize",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },

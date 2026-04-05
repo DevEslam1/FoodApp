@@ -4,14 +4,15 @@ import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   Image,
+  Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  View,
+  View
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import CategoryCard from "@/components/CategoryCard";
 import FoodCard from "@/components/FoodCard";
@@ -30,7 +31,9 @@ export default function HomeScreen() {
   const dispatch = useAppDispatch();
   const categories = useAppSelector(selectCategories);
   const visibleItems = useAppSelector(selectVisibleItems);
-  const selectedCategoryId = useAppSelector((state) => state.menu.selectedCategoryId);
+  const selectedCategoryId = useAppSelector(
+    (state) => state.menu.selectedCategoryId,
+  );
   const searchQuery = useAppSelector((state) => state.menu.searchQuery);
   const ordersCount = useAppSelector((state) => state.menu.ordersCount);
   const status = useAppSelector((state) => state.menu.status);
@@ -44,117 +47,136 @@ export default function HomeScreen() {
   }, [dispatch, status]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.headerRow}>
-          <Image source={profileImageSource} style={styles.avatar} />
+    <View style={styles.root}>
+      <SafeAreaView edges={["top"]} style={styles.safeArea}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "none"}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.headerRow}>
+            <Image source={profileImageSource} style={styles.avatar} />
 
-          <View style={styles.menuWrapper}>
-            <Ionicons color="#55504B" name="menu-outline" size={28} />
-            {ordersCount > 0 ? (
-              <View style={styles.orderBadge}>
-                <Text style={styles.orderBadgeText}>{ordersCount}</Text>
+            <View style={styles.menuWrapper}>
+              <Ionicons color="#55504B" name="menu-outline" size={28} />
+              {ordersCount > 0 ? (
+                <View style={styles.orderBadge}>
+                  <Text style={styles.orderBadgeText}>{ordersCount}</Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
+
+          <View style={styles.titleGroup}>
+            <Text style={styles.eyebrow}>Food</Text>
+            <Text style={styles.title}>Delivery</Text>
+          </View>
+
+          <View style={styles.searchBox}>
+            <Ionicons color="#4C4741" name="search-outline" size={20} />
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              onChangeText={(text) => dispatch(setSearchQuery(text))}
+              placeholder="Search..."
+              placeholderTextColor="#B5AEA5"
+              returnKeyType="search"
+              style={styles.searchInput}
+              value={searchQuery}
+            />
+          </View>
+
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Categories</Text>
+            <Text style={styles.sectionCaption}>
+              {
+                categories.find(
+                  (category) => category.id === selectedCategoryId,
+                )?.caption
+              }
+            </Text>
+          </View>
+
+          <ScrollView
+            horizontal
+            contentContainerStyle={styles.horizontalListContent}
+            keyboardShouldPersistTaps="handled"
+            showsHorizontalScrollIndicator={false}
+            style={styles.horizontalList}
+          >
+            {categories.map((category) => (
+              <CategoryCard
+                key={category.id}
+                active={category.id === selectedCategoryId}
+                category={category}
+                onPress={() => dispatch(setSelectedCategory(category.id))}
+              />
+            ))}
+          </ScrollView>
+
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Popular</Text>
+            {status === "loading" ? (
+              <View style={styles.statusRow}>
+                <ActivityIndicator color="#F0A42E" size="small" />
+                <Text style={styles.statusInline}>
+                  Loading live specials...
+                </Text>
               </View>
+            ) : errorMessage ? (
+              <Text style={styles.statusText}>{errorMessage}</Text>
+            ) : syncMessage ? (
+              <Text style={styles.statusText}>{syncMessage}</Text>
             ) : null}
           </View>
-        </View>
 
-        <View style={styles.titleGroup}>
-          <Text style={styles.eyebrow}>Food</Text>
-          <Text style={styles.title}>Delivery</Text>
-        </View>
-
-        <View style={styles.searchBox}>
-          <Ionicons color="#4C4741" name="search-outline" size={20} />
-          <TextInput
-            autoCapitalize="none"
-            autoCorrect={false}
-            onChangeText={(text) => dispatch(setSearchQuery(text))}
-            placeholder="Search..."
-            placeholderTextColor="#B5AEA5"
-            style={styles.searchInput}
-            value={searchQuery}
-          />
-        </View>
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Categories</Text>
-          <Text style={styles.sectionCaption}>
-            {categories.find((category) => category.id === selectedCategoryId)?.caption}
-          </Text>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.horizontalList}
-        >
-          {categories.map((category) => (
-            <CategoryCard
-              key={category.id}
-              active={category.id === selectedCategoryId}
-              category={category}
-              onPress={() => dispatch(setSelectedCategory(category.id))}
-            />
-          ))}
-        </ScrollView>
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Popular</Text>
-          {status === "loading" ? (
-            <View style={styles.statusRow}>
-              <ActivityIndicator color="#F0A42E" size="small" />
-              <Text style={styles.statusInline}>Loading live specials...</Text>
+          {visibleItems.length > 0 ? (
+            visibleItems.map((item) => (
+              <FoodCard
+                key={item.id}
+                item={item}
+                onPress={() =>
+                  router.push({
+                    pathname: "/food/[id]",
+                    params: { id: item.id },
+                  })
+                }
+              />
+            ))
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyTitle}>No results found</Text>
+              <Text style={styles.emptyText}>
+                Try another search or switch category to load more cards.
+              </Text>
+              <Pressable
+                onPress={() => {
+                  dispatch(setSearchQuery(""));
+                  dispatch(setSelectedCategory("pizza"));
+                }}
+                style={styles.emptyButton}
+              >
+                <Text style={styles.emptyButtonText}>Reset filters</Text>
+              </Pressable>
             </View>
-          ) : errorMessage ? (
-            <Text style={styles.statusText}>{errorMessage}</Text>
-          ) : syncMessage ? (
-            <Text style={styles.statusText}>{syncMessage}</Text>
-          ) : null}
-        </View>
-
-        {visibleItems.length > 0 ? (
-          visibleItems.map((item) => (
-            <FoodCard
-              key={item.id}
-              item={item}
-              onPress={() =>
-                router.push({
-                  pathname: "/food/[id]",
-                  params: { id: item.id },
-                })
-              }
-            />
-          ))
-        ) : (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No results found</Text>
-            <Text style={styles.emptyText}>
-              Try another search or switch category to load more cards.
-            </Text>
-            <Pressable
-              onPress={() => {
-                dispatch(setSearchQuery(""));
-                dispatch(setSelectedCategory("pizza"));
-              }}
-              style={styles.emptyButton}
-            >
-              <Text style={styles.emptyButtonText}>Reset filters</Text>
-            </Pressable>
-          </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  root: {
     flex: 1,
     backgroundColor: "#F6F4EF",
+  },
+  safeArea: {
+    flex: 1,
+  },
+  keyboard: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: 20,
@@ -240,7 +262,12 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   horizontalList: {
+    marginLeft: -20,
     marginRight: -20,
+  },
+  horizontalListContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 15, // extra room for shadows
   },
   statusRow: {
     marginTop: 6,
