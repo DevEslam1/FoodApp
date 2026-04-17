@@ -10,12 +10,14 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
 
 import CategoryCard from "@/src/presentation/components/CategoryCard";
 import FoodCard from "@/src/presentation/components/FoodCard";
+import FloatingCartButton from "@/src/presentation/components/FloatingCartButton";
 import { profileImageSource } from "@/constants/menuAssets";
 import { useAppDispatch, useAppSelector } from "@/src/presentation/state/hooks";
 import {
@@ -25,7 +27,7 @@ import {
   setSearchQuery,
   setSelectedCategory,
 } from "@/src/presentation/state/menuSlice";
-import { selectCartItemCount } from "@/src/presentation/state/cartSlice";
+import { addToCart, selectCartItemCount } from "@/src/presentation/state/cartSlice";
 import { MenuItem, MenuCategory } from "@/src/domain/entities/Menu";
 
 export default function HomeScreen() {
@@ -48,6 +50,11 @@ export default function HomeScreen() {
     }
   }, [dispatch, status]);
 
+  const handleAddToCart = (item: MenuItem) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    dispatch(addToCart({ menuItem: item, quantity: 1 }));
+  };
+
   return (
     <View style={styles.root}>
       <SafeAreaView edges={["top"]} style={styles.safeArea}>
@@ -60,13 +67,8 @@ export default function HomeScreen() {
           <View style={styles.headerRow}>
             <Image source={profileImageSource} style={styles.avatar} />
 
-            <Pressable onPress={() => router.push("/cart" as any)} style={styles.menuWrapper}>
-              <Ionicons color="#55504B" name="bag-outline" size={26} />
-              {cartCount > 0 && (
-                <View style={styles.orderBadge}>
-                  <Text style={styles.orderBadgeText}>{cartCount}</Text>
-                </View>
-              )}
+            <Pressable onPress={() => router.push("/favorites" as any)} style={styles.menuWrapper}>
+              <Ionicons color="#55504B" name="heart-outline" size={26} />
             </Pressable>
           </View>
 
@@ -144,6 +146,7 @@ export default function HomeScreen() {
                     params: { id: item.id },
                   })
                 }
+                onAddToCart={() => handleAddToCart(item)}
               />
             ))
           ) : (
@@ -165,6 +168,8 @@ export default function HomeScreen() {
           )}
         </ScrollView>
       </SafeAreaView>
+
+      <FloatingCartButton />
     </View>
   );
 }
@@ -317,6 +322,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8CB4B",
     paddingHorizontal: 18,
     paddingVertical: 12,
+  },
+  emptyButtonText: {
+    color: "#231E19",
+    fontSize: 13,
+    fontWeight: "800",
   },
   emptyButtonText: {
     color: "#231E19",

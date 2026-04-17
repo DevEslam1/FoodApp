@@ -107,6 +107,10 @@ export const selectVisibleItems = createSelector([selectMenuState], (menuState) 
 export const selectSelectedItemById = (state: RootState, id: string) =>
   state.menu.items.find((item) => item.id === id);
 
+export const selectFavoriteItems = createSelector([selectMenuState], (menuState) =>
+  menuState.items.filter((item) => item.isFavorite)
+);
+
 export const {
   placeOrder,
   setSearchQuery,

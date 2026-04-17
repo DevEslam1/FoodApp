@@ -19,15 +19,17 @@ A professional, production-ready food delivery application built with **React Na
 ## 🚀 Key Features
 
 ### 🛒 Complete Order Workflow
+- **Direct Cart Interaction**: Instant "Add to Cart" functionality directly from the Home Screen list with tactile haptic feedback.
+- **Persistent Floating Navigation**: Floating Action Button (FAB) for the Cart that remains visible during scrolling, featuring real-time badge updates.
 - **Advanced Cart System**: Real-time subtotal calculation, delivery fee logic, and dynamic quantity management.
-- **Persistence-Ready State**: Managed via Redux Toolkit with centralized business logic in Domain Use Cases.
-- **Haptic Feedback**: Integrated `expo-haptics` for tactile engagement during "Add to Cart" and successful checkouts.
-- **Order Success Flow**: High-quality success screen with entry animations and delivery progress tracking.
+- **Egyptian Address Support**: Specialized checkout flow with support for Egyptian Governorates, Cities, and detailed building/apartment tracking.
+- **Saved Profiles & Payments**: Support for saved user addresses (Home/Work) and saved Credit Cards (Visa/MasterCard) for 1-tap checkout.
+- **Order Success Flow**: Comprehensive success screen showing delivery address summary and progress animations.
 
 ### 🍱 Premium UI/UX
 - **Modern Design System**: Glassmorphism elements, sleek dark-mode-ready colors, and tailored typography (Inter/Outfit).
-- **Smooth Transitions**: Fluid navigation between product catalogues and detailed views using Expo Router.
-- **Interactive Elements**: Custom animated buttons, category filtering with active states, and search functionality.
+- **Tactile Engagement**: Extensive use of `expo-haptics` for every critical action (adding items, selecting saved data, confirming orders).
+- **Smooth Transitions**: Spring-based layout animations using `react-native-reanimated` for FAB presence and form expansion.
 
 ### 🌐 Live Data Integration
 - **Hybrid Data Source**: Combines local high-resolution UI assets with live remote recipes fetched from DummyJSON API via Axios.
@@ -37,9 +39,9 @@ A professional, production-ready food delivery application built with **React Na
 
 The project is structured according to **Clean Architecture** principles to separate concerns and ensure maintainability:
 
-- **📁 src/domain**: The heart of the app. Contains pure business logic, `Entities` (Cart, Order, Menu), and `UseCases` (ManageCart, CreateOrder). Zero dependencies on external libraries or UI.
+- **📁 src/domain**: The heart of the app. Contains pure business logic, `Entities` (Cart, Order, User, Menu), and `UseCases` (ManageCart, CreateOrder). Zero dependencies on external libraries or UI.
 - **📁 src/data**: Handles data retrieval. Contains `Repositories` and `DataSources` (API clients, Local seeds). It implements the interfaces defined in the domain layer.
-- **📁 src/presentation**: The UI layer. Organized into `components`, `state` (Redux slices), and `hooks`. 
+- **📁 src/presentation**: The UI layer. Organized into `components`, `state` (Redux slices like `menu`, `cart`, `user`), and `hooks`. 
 - **📁 src/app**: Centralized routing using **Expo Router**, mapping URLs to the presentation screens.
 
 ## 🛠️ Tech Stack

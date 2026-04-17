@@ -16,6 +16,8 @@ import { ingredientImageSources, menuVisualSources } from "@/constants/menuAsset
 import { useAppDispatch, useAppSelector } from "@/src/presentation/state/hooks";
 import { selectSelectedItemById, toggleFavorite } from "@/src/presentation/state/menuSlice";
 import { addToCart, selectCartItemCount } from "@/src/presentation/state/cartSlice";
+import { ProductAddOn, ProductSize } from "@/src/domain/entities/Menu";
+import FloatingCartButton from "@/src/presentation/components/FloatingCartButton";
 
 export default function FoodDetailsScreen() {
   const router = useRouter();
@@ -25,6 +27,12 @@ export default function FoodDetailsScreen() {
   const cartCount = useAppSelector(selectCartItemCount);
   const [quantity, setQuantity] = useState(1);
   const [addedFeedback, setAddedFeedback] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<ProductSize | undefined>(item?.availableSizes?.[0]);
+  const [selectedAddOns, setSelectedAddOns] = useState<ProductAddOn[]>([]);
+
+  const currentPrice = item 
+    ? (item.price * (selectedSize?.priceMultiplier || 1)) + selectedAddOns.reduce((sum, ao) => sum + ao.price, 0) 
+    : 0;
 
   if (!item) {
     return (
@@ -44,7 +52,13 @@ export default function FoodDetailsScreen() {
   const imageSource = item.imageUrl ? { uri: item.imageUrl } : menuVisualSources[item.visualKey];
 
   const handleAddToCart = () => {
-    dispatch(addToCart({ menuItem: item, quantity }));
+    if (!item) return;
+    dispatch(addToCart({ 
+      menuItem: item, 
+      quantity, 
+      selectedSize, 
+      selectedAddOns 
+    }));
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setAddedFeedback(true);
     setTimeout(() => setAddedFeedback(false), 1800);
@@ -63,15 +77,6 @@ export default function FoodDetailsScreen() {
             </Pressable>
 
             <View style={styles.topRight}>
-              {/* Cart Button */}
-              <Pressable onPress={() => router.push("/cart")} style={styles.iconButton}>
-                <Ionicons color="#231E19" name="bag-outline" size={20} />
-                {cartCount > 0 && (
-                  <View style={styles.cartBadge}>
-                    <Text style={styles.cartBadgeText}>{cartCount}</Text>
-                  </View>
-                )}
-              </Pressable>
 
               {/* Favorite Button */}
               <Pressable
@@ -140,47 +145,111 @@ export default function FoodDetailsScreen() {
             ))}
           </View>
 
-          {/* ── Quantity Selector + Add to Cart ──────── */}
-          <View style={styles.addToCartSection}>
-            <View style={styles.quantityRow}>
-              <Pressable
-                onPress={() => setQuantity((q) => Math.max(1, q - 1))}
-                style={styles.qtyButton}
-              >
-                <Ionicons name="remove" size={18} color="#3E3832" />
-              </Pressable>
-              <Text style={styles.qtyValue}>{quantity}</Text>
-              <Pressable
-                onPress={() => setQuantity((q) => q + 1)}
-                style={styles.qtyButton}
-              >
-                <Ionicons name="add" size={18} color="#3E3832" />
-              </Pressable>
+          {item.availableSizes && (
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Select Size</Text>
+              <View style={styles.sizeRow}>
+                {item.availableSizes.map((size) => (
+                  <Pressable
+                    key={size.label}
+                    onPress={() => setSelectedSize(size)}
+                    style={[
+                      styles.sizeButton,
+                      selectedSize?.label === size.label && styles.selectedSizeButton,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.sizeButtonText,
+                        selectedSize?.label === size.label && styles.selectedSizeButtonText,
+                      ]}
+                    >
+                      {size.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
+          )}
 
-            <Pressable
-              onPress={handleAddToCart}
-              style={[styles.orderButton, addedFeedback && styles.orderButtonSuccess]}
-            >
-              {addedFeedback ? (
-                <>
-                  <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-                  <Text style={[styles.orderButtonText, { color: "#FFFFFF", marginLeft: 8 }]}>
-                    Added!
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Text style={styles.orderButtonText}>
-                    Add to Cart — ${(item.price * quantity).toFixed(2)}
-                  </Text>
-                  <Ionicons color="#231E19" name="bag-add-outline" size={18} />
-                </>
-              )}
-            </Pressable>
-          </View>
+          {item.availableAddOns && (
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Add-ons</Text>
+              <View style={styles.addOnsRow}>
+                {item.availableAddOns.map((addOn) => {
+                  const isSelected = selectedAddOns.some((a) => a.id === addOn.id);
+                  return (
+                    <Pressable
+                      key={addOn.id}
+                      onPress={() => {
+                        setSelectedAddOns((prev) =>
+                          isSelected
+                            ? prev.filter((a) => a.id !== addOn.id)
+                            : [...prev, addOn],
+                        );
+                      }}
+                      style={[styles.addOnButton, isSelected && styles.selectedAddOnButton]}
+                    >
+                      <Text
+                        style={[
+                          styles.addOnButtonText,
+                          isSelected && styles.selectedAddOnButtonText,
+                        ]}
+                      >
+                        {addOn.name} (+${addOn.price.toFixed(2)})
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
         </ScrollView>
       </SafeAreaView>
+
+      <SafeAreaView edges={["bottom"]} style={styles.footer}>
+        <View style={styles.footerContent}>
+          <View style={styles.quantityRow}>
+            <Pressable
+              onPress={() => setQuantity((q) => Math.max(1, q - 1))}
+              style={styles.qtyButton}
+            >
+              <Ionicons name="remove" size={18} color="#3E3832" />
+            </Pressable>
+            <Text style={styles.qtyValue}>{quantity}</Text>
+            <Pressable
+              onPress={() => setQuantity((q) => q + 1)}
+              style={styles.qtyButton}
+            >
+              <Ionicons name="add" size={18} color="#3E3832" />
+            </Pressable>
+          </View>
+
+          <Pressable
+            onPress={handleAddToCart}
+            style={[styles.orderButton, addedFeedback && styles.orderButtonSuccess]}
+          >
+            {addedFeedback ? (
+              <>
+                <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                <Text style={[styles.orderButtonText, { color: "#FFFFFF", marginLeft: 8 }]}>
+                  Added!
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.orderButtonText}>
+                  Add to Cart — ${(currentPrice * quantity).toFixed(2)}
+                </Text>
+                <Ionicons color="#231E19" name="bag-add-outline" size={18} />
+              </>
+            )}
+          </Pressable>
+        </View>
+      </SafeAreaView>
+
+      <FloatingCartButton bottomOffset={180} />
     </View>
   );
 }
@@ -220,23 +289,6 @@ const styles = StyleSheet.create({
   favoriteButton: {
     borderColor: "#F8CB4B",
     backgroundColor: "#F8CB4B",
-  },
-  cartBadge: {
-    position: "absolute",
-    top: -6,
-    right: -6,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: "#F06B62",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 4,
-  },
-  cartBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#FFFFFF",
   },
   heroRow: {
     marginTop: 34,
@@ -388,6 +440,21 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "800",
   },
+  footer: {
+    backgroundColor: "#F6F4EF",
+    borderTopWidth: 1,
+    borderTopColor: "#E4DFD7",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  footerContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
   missingState: {
     flex: 1,
     alignItems: "center",
@@ -409,6 +476,64 @@ const styles = StyleSheet.create({
   missingButtonText: {
     color: "#231E19",
     fontSize: 14,
+    fontWeight: "800",
+  },
+  sectionContainer: {
+    marginTop: 24,
+  },
+  sizeRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 14,
+  },
+  sizeButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#E4DFD7",
+  },
+  selectedSizeButton: {
+    backgroundColor: "#231E19",
+    borderColor: "#231E19",
+  },
+  sizeButtonText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#6E665D",
+  },
+  selectedSizeButtonText: {
+    color: "#FFFFFF",
+  },
+  addOnsRow: {
+    flexDirection: "column",
+    gap: 10,
+    marginTop: 14,
+  },
+  addOnButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E4DFD7",
+  },
+  selectedAddOnButton: {
+    borderColor: "#F8CB4B",
+    backgroundColor: "#FEF9EB",
+  },
+  addOnButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#3E3832",
+  },
+  selectedAddOnButtonText: {
+    color: "#231E19",
     fontWeight: "800",
   },
 });

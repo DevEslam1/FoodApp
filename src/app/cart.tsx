@@ -29,7 +29,10 @@ function CartItemRow({ cartItem, onIncrement, onDecrement, onRemove }: {
   onDecrement: () => void;
   onRemove: () => void;
 }) {
-  const { menuItem, quantity } = cartItem;
+  const { menuItem, quantity, selectedSize, selectedAddOns } = cartItem;
+
+  const unitPrice = (menuItem.price * (selectedSize?.priceMultiplier || 1)) + 
+    (selectedAddOns?.reduce((sum, ao) => sum + ao.price, 0) || 0);
   const imageSource = menuItem.imageUrl
     ? { uri: menuItem.imageUrl }
     : menuVisualSources[menuItem.visualKey];
@@ -39,8 +42,18 @@ function CartItemRow({ cartItem, onIncrement, onDecrement, onRemove }: {
       <Image source={imageSource} style={styles.itemImage} resizeMode="contain" />
       <View style={styles.itemInfo}>
         <Text style={styles.itemName} numberOfLines={1}>{menuItem.name}</Text>
-        <Text style={styles.itemPrice}>${(menuItem.price * quantity).toFixed(2)}</Text>
-        <Text style={styles.itemUnit}>${menuItem.price.toFixed(2)} each</Text>
+        <Text style={styles.itemPrice}>${(unitPrice * quantity).toFixed(2)}</Text>
+        <View style={styles.variationRow}>
+          {selectedSize && (
+            <Text style={styles.variationText}>Size: {selectedSize.label}</Text>
+          )}
+          {selectedAddOns && selectedAddOns.length > 0 && (
+            <Text style={styles.variationText} numberOfLines={1}>
+              {selectedAddOns.map(a => a.name).join(", ")}
+            </Text>
+          )}
+        </View>
+        <Text style={styles.itemUnit}>${unitPrice.toFixed(2)} each</Text>
       </View>
       <View style={styles.quantityControls}>
         <Pressable
@@ -70,8 +83,7 @@ export default function CartScreen() {
   const estimatedDelivery = useAppSelector(selectEstimatedDelivery);
 
   const handleCheckout = () => {
-    dispatch(checkout());
-    router.push("/order-success" as any);
+    router.push("/checkout" as any);
   };
 
   return (
@@ -108,23 +120,23 @@ export default function CartScreen() {
               contentContainerStyle={styles.listContent}
               showsVerticalScrollIndicator={false}
             >
-              {items.map((cartItem: CartItem) => (
+              {items.map((cartItem: CartItem, index: number) => (
                 <CartItemRow
-                  key={cartItem.menuItem.id}
+                  key={`${cartItem.menuItem.id}-${index}`}
                   cartItem={cartItem}
                   onIncrement={() =>
                     dispatch(updateCartQuantity({
-                      menuItemId: cartItem.menuItem.id,
+                      index,
                       quantity: cartItem.quantity + 1,
                     }))
                   }
                   onDecrement={() =>
                     dispatch(updateCartQuantity({
-                      menuItemId: cartItem.menuItem.id,
+                      index,
                       quantity: cartItem.quantity - 1,
                     }))
                   }
-                  onRemove={() => dispatch(removeFromCart(cartItem.menuItem.id))}
+                  onRemove={() => dispatch(removeFromCart(index))}
                 />
               ))}
 
@@ -252,6 +264,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontSize: 11,
     color: "#AAA49A",
+    fontWeight: "500",
+  },
+  variationRow: {
+    marginTop: 4,
+  },
+  variationText: {
+    fontSize: 12,
+    color: "#8C847B",
     fontWeight: "500",
   },
 

@@ -8,6 +8,17 @@ export interface MenuCategory {
   caption: string;
 }
 
+export interface ProductSize {
+  label: string;
+  priceMultiplier: number;
+}
+
+export interface ProductAddOn {
+  id: string;
+  name: string;
+  price: number;
+}
+
 export interface MenuItem {
   id: string;
   categoryId: CategoryId;
@@ -27,4 +38,6 @@ export interface MenuItem {
   visualKey: MenuVisualKey;
   imageUrl?: string;
   isFavorite: boolean;
+  availableSizes?: ProductSize[];
+  availableAddOns?: ProductAddOn[];
 }

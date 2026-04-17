@@ -10,17 +10,18 @@ import {
 } from "react-native";
 
 import { menuVisualSources } from "@/constants/menuAssets";
-import type { MenuItem } from "@/constants/menuData";
+import { MenuItem } from "@/src/domain/entities/Menu";
 
 interface FoodCardProps {
   item: MenuItem;
   onPress: () => void;
+  onAddToCart?: () => void;
 }
 
 const getImageSource = (item: MenuItem): ImageSourcePropType | { uri: string } =>
   item.imageUrl ? { uri: item.imageUrl } : menuVisualSources[item.visualKey];
 
-export default function FoodCard({ item, onPress }: FoodCardProps) {
+export default function FoodCard({ item, onPress, onAddToCart }: FoodCardProps) {
   return (
     <Pressable onPress={onPress} style={styles.card}>
       <View style={styles.topRow}>
@@ -49,9 +50,15 @@ export default function FoodCard({ item, onPress }: FoodCardProps) {
       </View>
 
       <View style={styles.footer}>
-        <View style={styles.addButton}>
-          <Ionicons color="#231E19" name="add" size={18} />
-        </View>
+        <Pressable
+          onPress={onAddToCart}
+          style={({ pressed }) => [
+            styles.addButton,
+            pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+          ]}
+        >
+          <Ionicons color="#231E19" name="add" size={22} />
+        </Pressable>
 
         <View style={styles.ratingRow}>
           <Ionicons color="#2A2825" name="star" size={14} />

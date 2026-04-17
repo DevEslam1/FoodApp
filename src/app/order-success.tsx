@@ -109,6 +109,18 @@ export default function OrderSuccessScreen() {
                   <Text style={styles.orderTotalValue}>${order.total.toFixed(2)}</Text>
                 </View>
 
+                {order.address && (
+                  <>
+                    <View style={styles.orderDivider} />
+                    <View style={styles.addressRow}>
+                      <Ionicons name="location-outline" size={16} color="#8C847B" />
+                      <Text style={styles.addressText} numberOfLines={2}>
+                        {order.address.building}, {order.address.street}, {order.address.city}, {order.address.governorate}
+                      </Text>
+                    </View>
+                  </>
+                )}
+
                 <View style={styles.orderDivider} />
 
                 <View style={styles.deliveryRow}>
@@ -260,6 +272,19 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: "#F2EDE6",
     marginVertical: 4,
+  },
+  addressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    gap: 8,
+  },
+  addressText: {
+    flex: 1,
+    fontSize: 13,
+    color: "#6A645D",
+    fontWeight: "500",
+    lineHeight: 18,
   },
   deliveryRow: {
     flexDirection: "row",

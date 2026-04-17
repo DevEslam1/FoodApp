@@ -1,7 +1,7 @@
 import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { manageCartUseCase } from "../../dependencies";
-import { CartItem, Order } from "../../domain/entities/Cart";
-import { MenuItem } from "../../domain/entities/Menu";
+import { Address, CartItem, Order, PaymentMethod } from "../../domain/entities/Cart";
+import { MenuItem, ProductAddOn, ProductSize } from "../../domain/entities/Menu";
 import type { RootState } from "./index";
 
 interface CartState {
@@ -20,29 +20,46 @@ const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    addToCart(state, action: PayloadAction<{ menuItem: MenuItem; quantity?: number }>) {
+    addToCart(
+      state,
+      action: PayloadAction<{
+        menuItem: MenuItem;
+        quantity?: number;
+        selectedSize?: ProductSize;
+        selectedAddOns?: ProductAddOn[];
+      }>
+    ) {
       state.items = manageCartUseCase.addItem(
         state.items,
         action.payload.menuItem,
         action.payload.quantity ?? 1,
+        action.payload.selectedSize,
+        action.payload.selectedAddOns
       );
     },
 
-    removeFromCart(state, action: PayloadAction<string>) {
+    removeFromCart(state, action: PayloadAction<number>) {
       state.items = manageCartUseCase.removeItem(state.items, action.payload);
     },
 
-    updateCartQuantity(state, action: PayloadAction<{ menuItemId: string; quantity: number }>) {
+    updateCartQuantity(state, action: PayloadAction<{ index: number; quantity: number }>) {
       state.items = manageCartUseCase.updateQuantity(
         state.items,
-        action.payload.menuItemId,
-        action.payload.quantity,
+        action.payload.index,
+        action.payload.quantity
       );
     },
 
-    checkout(state) {
+    checkout(
+      state,
+      action: PayloadAction<{ address: Address; paymentMethod: PaymentMethod }>,
+    ) {
       if (state.items.length === 0) return;
-      const order = manageCartUseCase.createOrder(state.items);
+      const order = manageCartUseCase.createOrder(
+        state.items,
+        action.payload.address,
+        action.payload.paymentMethod,
+      );
       state.orders.unshift(order);
       state.lastOrder = order;
       state.items = [];

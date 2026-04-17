@@ -1,39 +1,75 @@
-import { CartItem, Order } from "../entities/Cart";
-import { MenuItem } from "../entities/Menu";
+import { CartItem, Order, Address, PaymentMethod } from "../entities/Cart";
+import { MenuItem, ProductAddOn, ProductSize } from "../entities/Menu";
 
 const DELIVERY_FEE = 2.99;
 
 export class ManageCartUseCase {
-  addItem(cart: CartItem[], menuItem: MenuItem, quantity: number = 1): CartItem[] {
-    const existing = cart.find((ci) => ci.menuItem.id === menuItem.id);
+  addItem(
+    cart: CartItem[],
+    menuItem: MenuItem,
+    quantity: number = 1,
+    selectedSize?: ProductSize,
+    selectedAddOns?: ProductAddOn[]
+  ): CartItem[] {
+    const existingIndex = cart.findIndex((ci) => 
+      ci.menuItem.id === menuItem.id && 
+      ci.selectedSize?.label === selectedSize?.label &&
+      this.areAddOnsEqual(ci.selectedAddOns, selectedAddOns)
+    );
 
-    if (existing) {
-      return cart.map((ci) =>
-        ci.menuItem.id === menuItem.id
+    if (existingIndex !== -1) {
+      return cart.map((ci, idx) =>
+        idx === existingIndex
           ? { ...ci, quantity: ci.quantity + quantity }
           : ci
       );
     }
 
-    return [...cart, { menuItem, quantity }];
+    return [...cart, { menuItem, quantity, selectedSize, selectedAddOns }];
   }
 
-  removeItem(cart: CartItem[], menuItemId: string): CartItem[] {
-    return cart.filter((ci) => ci.menuItem.id !== menuItemId);
+  private areAddOnsEqual(a?: ProductAddOn[], b?: ProductAddOn[]): boolean {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    if (a.length !== b.length) return false;
+    
+    const namesA = a.map(ao => ao.id).sort();
+    const namesB = b.map(ao => ao.id).sort();
+    
+    return namesA.every((val, index) => val === namesB[index]);
   }
 
-  updateQuantity(cart: CartItem[], menuItemId: string, quantity: number): CartItem[] {
+  removeItem(cart: CartItem[], index: number): CartItem[] {
+    return cart.filter((_, idx) => idx !== index);
+  }
+
+  updateQuantity(cart: CartItem[], index: number, quantity: number): CartItem[] {
     if (quantity <= 0) {
-      return this.removeItem(cart, menuItemId);
+      return this.removeItem(cart, index);
     }
 
-    return cart.map((ci) =>
-      ci.menuItem.id === menuItemId ? { ...ci, quantity } : ci
+    return cart.map((ci, idx) =>
+      idx === index ? { ...ci, quantity } : ci
     );
   }
 
+  getItemPrice(cartItem: CartItem): number {
+    let price = cartItem.menuItem.price;
+    
+    if (cartItem.selectedSize) {
+      price *= cartItem.selectedSize.priceMultiplier;
+    }
+    
+    if (cartItem.selectedAddOns) {
+      const addOnsTotal = cartItem.selectedAddOns.reduce((sum, ao) => sum + ao.price, 0);
+      price += addOnsTotal;
+    }
+    
+    return price;
+  }
+
   calculateSubtotal(cart: CartItem[]): number {
-    return cart.reduce((sum, ci) => sum + ci.menuItem.price * ci.quantity, 0);
+    return cart.reduce((sum, ci) => sum + this.getItemPrice(ci) * ci.quantity, 0);
   }
 
   calculateTotal(cart: CartItem[]): {
@@ -59,7 +95,7 @@ export class ManageCartUseCase {
     return Math.max(...cart.map((ci) => ci.menuItem.deliveryMinutes));
   }
 
-  createOrder(cart: CartItem[]): Order {
+  createOrder(cart: CartItem[], address: Address, paymentMethod: PaymentMethod): Order {
     const { subtotal, deliveryFee, total } = this.calculateTotal(cart);
     const estimatedMinutes = this.getEstimatedDelivery(cart);
 
@@ -70,6 +106,8 @@ export class ManageCartUseCase {
       deliveryFee,
       total,
       status: "preparing",
+      paymentMethod,
+      address,
       createdAt: new Date().toISOString(),
       estimatedMinutes,
     };

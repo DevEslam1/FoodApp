@@ -8,6 +8,17 @@ export interface MenuCategory {
   caption: string;
 }
 
+export interface ProductSize {
+  label: string;
+  priceMultiplier: number;
+}
+
+export interface ProductAddOn {
+  id: string;
+  name: string;
+  price: number;
+}
+
 export interface MenuItem {
   id: string;
   categoryId: CategoryId;
@@ -27,6 +38,8 @@ export interface MenuItem {
   visualKey: MenuVisualKey;
   imageUrl?: string;
   isFavorite: boolean;
+  availableSizes?: ProductSize[];
+  availableAddOns?: ProductAddOn[];
 }
 
 export interface DummyRecipe {
@@ -86,6 +99,16 @@ export const seedMenuItems: MenuItem[] = [
     ingredientKeys: ["ham", "tomato", "garlic"],
     visualKey: "pizza1",
     isFavorite: true,
+    availableSizes: [
+      { label: "S", priceMultiplier: 1.0 },
+      { label: "M", priceMultiplier: 1.2 },
+      { label: "L", priceMultiplier: 1.5 },
+    ],
+    availableAddOns: [
+      { id: "ex-cheese", name: "Extra Cheese", price: 1.5 },
+      { id: "olives", name: "Olives", price: 0.8 },
+      { id: "pepperoni", name: "Pepperoni", price: 2.0 },
+    ],
   },
   {
     id: "margherita-pizza",
@@ -106,6 +129,16 @@ export const seedMenuItems: MenuItem[] = [
     ingredientKeys: ["cheese", "tomato", "garlic"],
     visualKey: "pizza2",
     isFavorite: false,
+    availableSizes: [
+      { label: "S", priceMultiplier: 1.0 },
+      { label: "M", priceMultiplier: 1.2 },
+      { label: "L", priceMultiplier: 1.5 },
+    ],
+    availableAddOns: [
+      { id: "ex-cheese", name: "Extra Cheese", price: 1.5 },
+      { id: "olives", name: "Olives", price: 0.8 },
+      { id: "pepperoni", name: "Pepperoni", price: 2.0 },
+    ],
   },
   {
     id: "shrimp-pasta",
@@ -127,6 +160,14 @@ export const seedMenuItems: MenuItem[] = [
     visualKey: "pizza3",
     imageUrl: "https://cdn.dummyjson.com/recipe-images/10.webp",
     isFavorite: false,
+    availableSizes: [
+      { label: "Regular", priceMultiplier: 1.0 },
+      { label: "Large", priceMultiplier: 1.3 },
+    ],
+    availableAddOns: [
+      { id: "ex-shrimp", name: "Extra Shrimp", price: 3.0 },
+      { id: "ex-sauce", name: "Extra Sauce", price: 0.5 },
+    ],
   },
   {
     id: "citrus-cola",
@@ -147,6 +188,15 @@ export const seedMenuItems: MenuItem[] = [
     ingredientKeys: ["tomato", "garlic", "cheese"],
     visualKey: "drink",
     isFavorite: false,
+    availableSizes: [
+      { label: "330 ml", priceMultiplier: 1.0 },
+      { label: "500 ml", priceMultiplier: 1.4 },
+      { label: "1 L", priceMultiplier: 2.0 },
+    ],
+    availableAddOns: [
+      { id: "ice", name: "Extra Ice", price: 0.0 },
+      { id: "lemon", name: "Lemon Slice", price: 0.5 },
+    ],
   },
 ];
 
