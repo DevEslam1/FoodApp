@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Provider } from "react-redux";
 
-import { store } from "@/store";
+import { store } from "@/src/presentation/state";
 
 export default function RootLayout() {
   return (
@@ -18,6 +18,8 @@ export default function RootLayout() {
         <Stack.Screen name="signup" />
         <Stack.Screen name="home" />
         <Stack.Screen name="food/[id]" />
+        <Stack.Screen name="cart" />
+        <Stack.Screen name="order-success" />
       </Stack>
     </Provider>
   );

@@ -9,31 +9,22 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AuthButton from "../components/AuthButton";
-import AuthCard from "../components/AuthCard";
-import AuthDecoration from "../components/AuthDecoration";
-import CustomInput from "../components/CustomInput";
+import AuthButton from "@/src/presentation/components/AuthButton";
+import AuthCard from "@/src/presentation/components/AuthCard";
+import AuthDecoration from "@/src/presentation/components/AuthDecoration";
+import CustomInput from "@/src/presentation/components/CustomInput";
 
-export default function SignupScreen() {
+export default function LoginScreen() {
   const router = useRouter();
-  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const emailInputRef = useRef<TextInput>(null);
   const passwordInputRef = useRef<TextInput>(null);
-  const confirmPasswordInputRef = useRef<TextInput>(null);
+  const canLogin = email.trim().length > 0 && password.trim().length > 0;
 
-  const canSignup =
-    fullName.trim().length > 0 &&
-    email.trim().length > 0 &&
-    password.trim().length > 0 &&
-    confirmPassword.trim().length > 0;
-
-  const handleSignup = () => {
+  const handleLogin = () => {
     Keyboard.dismiss();
     router.replace("/home");
   };
@@ -51,15 +42,15 @@ export default function SignupScreen() {
           showsVerticalScrollIndicator={false}
         >
           <AuthCard
-            minHeight={640}
-            onBackPress={() => router.back()}
-            title="Create Account"
+            minHeight={540}
+            title="Login"
+            subtitle="Please sign in to continue."
             footer={
               <View style={styles.footer}>
-                <Text style={styles.footerText}>Already have an account? </Text>
-                <Link href="/" asChild>
+                <Text style={styles.footerText}>Don&apos;t have an account? </Text>
+                <Link href="/signup" asChild>
                   <Pressable>
-                    <Text style={styles.signinLink}>Sign in</Text>
+                    <Text style={styles.signupLink}>Sign up</Text>
                   </Pressable>
                 </Link>
               </View>
@@ -67,80 +58,50 @@ export default function SignupScreen() {
           >
             <View style={styles.form}>
               <CustomInput
-                autoCapitalize="words"
-                autoCorrect={false}
-                autoFocus
-                keyboardType="default"
-                label="Full Name"
-                iconName="person-outline"
-                maxLength={30}
-                onChangeText={setFullName}
-                onSubmitEditing={() => emailInputRef.current?.focus()}
-                placeholder="Jhone Williams"
-                returnKeyType="next"
-                style={styles.inputText}
-                textContentType="name"
-                value={fullName}
-              />
-
-              <CustomInput
                 autoCapitalize="none"
                 autoCorrect={false}
                 autoComplete="email"
+                autoFocus
                 keyboardType="email-address"
                 label="Email"
                 iconName="mail-outline"
                 maxLength={40}
                 onChangeText={setEmail}
-                onSubmitEditing={() => passwordInputRef.current?.focus()}
-                placeholder="Enter your email"
-                ref={emailInputRef}
+                placeholder="user123@email.com"
                 returnKeyType="next"
                 style={styles.inputText}
                 textContentType="emailAddress"
                 value={email}
+                onSubmitEditing={() => passwordInputRef.current?.focus()}
               />
 
               <CustomInput
                 autoCapitalize="none"
                 autoCorrect={false}
                 autoComplete="password"
+                blurOnSubmit
                 label="Password"
                 iconName="lock-closed-outline"
                 maxLength={20}
                 onChangeText={setPassword}
-                onSubmitEditing={() => confirmPasswordInputRef.current?.focus()}
-                placeholder="Create password"
+                onSubmitEditing={handleLogin}
+                placeholder="Enter your password"
                 ref={passwordInputRef}
-                returnKeyType="next"
-                secureTextEntry
-                style={styles.inputText}
-                textContentType="newPassword"
-                value={password}
-              />
-
-              <CustomInput
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="password"
-                label="Confirm Password"
-                iconName="lock-closed-outline"
-                maxLength={20}
-                onChangeText={setConfirmPassword}
-                onSubmitEditing={handleSignup}
-                placeholder="Confirm password"
-                ref={confirmPasswordInputRef}
                 returnKeyType="done"
                 secureTextEntry
                 style={styles.inputText}
                 textContentType="password"
-                value={confirmPassword}
+                value={password}
+                rightElement={
+                  <Pressable>
+                    <Text style={styles.forgotText}>FORGOT</Text>
+                  </Pressable>
+                }
               />
 
               <AuthButton
-                disabled={!canSignup}
-                label="SIGN UP"
-                onPress={handleSignup}
+                label="LOGIN"
+                onPress={handleLogin}
                 style={styles.buttonContainer}
               />
             </View>
@@ -170,6 +131,12 @@ const styles = StyleSheet.create({
   form: {
     flex: 1,
   },
+  forgotText: {
+    color: "#F5A129",
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.8,
+  },
   buttonContainer: {
     marginTop: 18,
   },
@@ -182,10 +149,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "500",
   },
-  signinLink: {
+  signupLink: {
     color: "#F5A129",
-    fontSize: 13,
     fontWeight: "800",
+    fontSize: 13,
   },
   inputText: {
     fontSize: 14,

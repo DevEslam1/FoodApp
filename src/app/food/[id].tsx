@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React from "react";
+import * as Haptics from "expo-haptics";
+import React, { useState } from "react";
 import {
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -13,15 +13,18 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ingredientImageSources, menuVisualSources } from "@/constants/menuAssets";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { placeOrder, selectSelectedItemById, toggleFavorite } from "@/store/menuSlice";
+import { useAppDispatch, useAppSelector } from "@/src/presentation/state/hooks";
+import { selectSelectedItemById, toggleFavorite } from "@/src/presentation/state/menuSlice";
+import { addToCart, selectCartItemCount } from "@/src/presentation/state/cartSlice";
 
 export default function FoodDetailsScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const dispatch = useAppDispatch();
   const item = useAppSelector((state) => (id ? selectSelectedItemById(state, id) : undefined));
-  const ordersCount = useAppSelector((state) => state.menu.ordersCount);
+  const cartCount = useAppSelector(selectCartItemCount);
+  const [quantity, setQuantity] = useState(1);
+  const [addedFeedback, setAddedFeedback] = useState(false);
 
   if (!item) {
     return (
@@ -40,9 +43,11 @@ export default function FoodDetailsScreen() {
 
   const imageSource = item.imageUrl ? { uri: item.imageUrl } : menuVisualSources[item.visualKey];
 
-  const handleOrder = () => {
-    dispatch(placeOrder());
-    Alert.alert("Order placed", `${item.name} added to your orders. Total orders: ${ordersCount + 1}`);
+  const handleAddToCart = () => {
+    dispatch(addToCart({ menuItem: item, quantity }));
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setAddedFeedback(true);
+    setTimeout(() => setAddedFeedback(false), 1800);
   };
 
   return (
@@ -57,16 +62,32 @@ export default function FoodDetailsScreen() {
               <Ionicons color="#231E19" name="chevron-back" size={22} />
             </Pressable>
 
-            <Pressable
-              onPress={() => dispatch(toggleFavorite(item.id))}
-              style={[styles.iconButton, item.isFavorite && styles.favoriteButton]}
-            >
-              <Ionicons
-                color={item.isFavorite ? "#FFFFFF" : "#231E19"}
-                name={item.isFavorite ? "star" : "star-outline"}
-                size={20}
-              />
-            </Pressable>
+            <View style={styles.topRight}>
+              {/* Cart Button */}
+              <Pressable onPress={() => router.push("/cart")} style={styles.iconButton}>
+                <Ionicons color="#231E19" name="bag-outline" size={20} />
+                {cartCount > 0 && (
+                  <View style={styles.cartBadge}>
+                    <Text style={styles.cartBadgeText}>{cartCount}</Text>
+                  </View>
+                )}
+              </Pressable>
+
+              {/* Favorite Button */}
+              <Pressable
+                onPress={() => {
+                  dispatch(toggleFavorite(item.id));
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
+                style={[styles.iconButton, item.isFavorite && styles.favoriteButton]}
+              >
+                <Ionicons
+                  color={item.isFavorite ? "#FFFFFF" : "#231E19"}
+                  name={item.isFavorite ? "star" : "star-outline"}
+                  size={20}
+                />
+              </Pressable>
+            </View>
           </View>
 
           <View style={styles.heroRow}>
@@ -119,10 +140,45 @@ export default function FoodDetailsScreen() {
             ))}
           </View>
 
-          <Pressable onPress={handleOrder} style={styles.orderButton}>
-            <Text style={styles.orderButtonText}>Place an order</Text>
-            <Ionicons color="#231E19" name="chevron-forward" size={18} />
-          </Pressable>
+          {/* ── Quantity Selector + Add to Cart ──────── */}
+          <View style={styles.addToCartSection}>
+            <View style={styles.quantityRow}>
+              <Pressable
+                onPress={() => setQuantity((q) => Math.max(1, q - 1))}
+                style={styles.qtyButton}
+              >
+                <Ionicons name="remove" size={18} color="#3E3832" />
+              </Pressable>
+              <Text style={styles.qtyValue}>{quantity}</Text>
+              <Pressable
+                onPress={() => setQuantity((q) => q + 1)}
+                style={styles.qtyButton}
+              >
+                <Ionicons name="add" size={18} color="#3E3832" />
+              </Pressable>
+            </View>
+
+            <Pressable
+              onPress={handleAddToCart}
+              style={[styles.orderButton, addedFeedback && styles.orderButtonSuccess]}
+            >
+              {addedFeedback ? (
+                <>
+                  <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+                  <Text style={[styles.orderButtonText, { color: "#FFFFFF", marginLeft: 8 }]}>
+                    Added!
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.orderButtonText}>
+                    Add to Cart — ${(item.price * quantity).toFixed(2)}
+                  </Text>
+                  <Ionicons color="#231E19" name="bag-add-outline" size={18} />
+                </>
+              )}
+            </Pressable>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -147,6 +203,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
+  topRight: {
+    flexDirection: "row",
+    gap: 10,
+  },
   iconButton: {
     width: 38,
     height: 38,
@@ -160,6 +220,23 @@ const styles = StyleSheet.create({
   favoriteButton: {
     borderColor: "#F8CB4B",
     backgroundColor: "#F8CB4B",
+  },
+  cartBadge: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#F06B62",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  cartBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
   heroRow: {
     marginTop: 34,
@@ -260,17 +337,53 @@ const styles = StyleSheet.create({
     color: "#615A52",
     fontWeight: "600",
   },
+
+  // Add to Cart Section
+  addToCartSection: {
+    marginTop: 30,
+  },
+  quantityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 20,
+    marginBottom: 18,
+  },
+  qtyButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#E4DFD7",
+    shadowColor: "#55493B",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  qtyValue: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#231E19",
+    minWidth: 32,
+    textAlign: "center",
+  },
   orderButton: {
-    marginTop: 34,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 999,
     backgroundColor: "#F8CB4B",
     paddingVertical: 18,
+    gap: 8,
+  },
+  orderButtonSuccess: {
+    backgroundColor: "#4CAF50",
   },
   orderButtonText: {
-    marginRight: 8,
     color: "#231E19",
     fontSize: 17,
     fontWeight: "800",

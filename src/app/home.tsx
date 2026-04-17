@@ -14,17 +14,19 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import CategoryCard from "@/components/CategoryCard";
-import FoodCard from "@/components/FoodCard";
+import CategoryCard from "@/src/presentation/components/CategoryCard";
+import FoodCard from "@/src/presentation/components/FoodCard";
 import { profileImageSource } from "@/constants/menuAssets";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/src/presentation/state/hooks";
 import {
   fetchFeaturedMenu,
   selectCategories,
   selectVisibleItems,
   setSearchQuery,
   setSelectedCategory,
-} from "@/store/menuSlice";
+} from "@/src/presentation/state/menuSlice";
+import { selectCartItemCount } from "@/src/presentation/state/cartSlice";
+import { MenuItem, MenuCategory } from "@/src/domain/entities/Menu";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -35,7 +37,7 @@ export default function HomeScreen() {
     (state) => state.menu.selectedCategoryId,
   );
   const searchQuery = useAppSelector((state) => state.menu.searchQuery);
-  const ordersCount = useAppSelector((state) => state.menu.ordersCount);
+  const cartCount = useAppSelector(selectCartItemCount);
   const status = useAppSelector((state) => state.menu.status);
   const errorMessage = useAppSelector((state) => state.menu.errorMessage);
   const syncMessage = useAppSelector((state) => state.menu.syncMessage);
@@ -58,14 +60,14 @@ export default function HomeScreen() {
           <View style={styles.headerRow}>
             <Image source={profileImageSource} style={styles.avatar} />
 
-            <View style={styles.menuWrapper}>
-              <Ionicons color="#55504B" name="menu-outline" size={28} />
-              {ordersCount > 0 ? (
+            <Pressable onPress={() => router.push("/cart" as any)} style={styles.menuWrapper}>
+              <Ionicons color="#55504B" name="bag-outline" size={26} />
+              {cartCount > 0 && (
                 <View style={styles.orderBadge}>
-                  <Text style={styles.orderBadgeText}>{ordersCount}</Text>
+                  <Text style={styles.orderBadgeText}>{cartCount}</Text>
                 </View>
-              ) : null}
-            </View>
+              )}
+            </Pressable>
           </View>
 
           <View style={styles.titleGroup}>
@@ -92,7 +94,7 @@ export default function HomeScreen() {
             <Text style={styles.sectionCaption}>
               {
                 categories.find(
-                  (category) => category.id === selectedCategoryId,
+                  (category: MenuCategory) => category.id === selectedCategoryId,
                 )?.caption
               }
             </Text>
@@ -105,7 +107,7 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             style={styles.horizontalList}
           >
-            {categories.map((category) => (
+            {categories.map((category: MenuCategory) => (
               <CategoryCard
                 key={category.id}
                 active={category.id === selectedCategoryId}
@@ -132,7 +134,7 @@ export default function HomeScreen() {
           </View>
 
           {visibleItems.length > 0 ? (
-            visibleItems.map((item) => (
+            visibleItems.map((item: MenuItem) => (
               <FoodCard
                 key={item.id}
                 item={item}
