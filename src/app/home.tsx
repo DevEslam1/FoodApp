@@ -18,6 +18,7 @@ import * as Haptics from "expo-haptics";
 import CategoryCard from "@/src/presentation/components/CategoryCard";
 import FoodCard from "@/src/presentation/components/FoodCard";
 import FloatingCartButton from "@/src/presentation/components/FloatingCartButton";
+import FloatingOrdersButton from "@/src/presentation/components/FloatingOrdersButton";
 import { profileImageSource } from "@/constants/menuAssets";
 import { useAppDispatch, useAppSelector } from "@/src/presentation/state/hooks";
 import {
@@ -27,7 +28,7 @@ import {
   setSearchQuery,
   setSelectedCategory,
 } from "@/src/presentation/state/menuSlice";
-import { addToCart, selectCartItemCount } from "@/src/presentation/state/cartSlice";
+import { addToCart } from "@/src/presentation/state/cartSlice";
 import { MenuItem, MenuCategory } from "@/src/domain/entities/Menu";
 
 export default function HomeScreen() {
@@ -39,7 +40,6 @@ export default function HomeScreen() {
     (state) => state.menu.selectedCategoryId,
   );
   const searchQuery = useAppSelector((state) => state.menu.searchQuery);
-  const cartCount = useAppSelector(selectCartItemCount);
   const status = useAppSelector((state) => state.menu.status);
   const errorMessage = useAppSelector((state) => state.menu.errorMessage);
   const syncMessage = useAppSelector((state) => state.menu.syncMessage);
@@ -169,6 +169,7 @@ export default function HomeScreen() {
         </ScrollView>
       </SafeAreaView>
 
+      <FloatingOrdersButton />
       <FloatingCartButton />
     </View>
   );
@@ -322,11 +323,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8CB4B",
     paddingHorizontal: 18,
     paddingVertical: 12,
-  },
-  emptyButtonText: {
-    color: "#231E19",
-    fontSize: 13,
-    fontWeight: "800",
   },
   emptyButtonText: {
     color: "#231E19",

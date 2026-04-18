@@ -14,7 +14,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { menuVisualSources } from "@/constants/menuAssets";
 import { useAppDispatch, useAppSelector } from "@/src/presentation/state/hooks";
 import {
-  checkout,
   removeFromCart,
   selectCartItems,
   selectCartTotals,
@@ -106,7 +105,7 @@ export default function CartScreen() {
             </View>
             <Text style={styles.emptyTitle}>Your cart is empty</Text>
             <Text style={styles.emptySubtitle}>
-              Looks like you haven't added{"\n"}any delicious items yet.
+              Looks like you haven&apos;t added{"\n"}any delicious items yet.
             </Text>
             <Pressable onPress={() => router.replace("/home" as any)} style={styles.emptyButton}>
               <Text style={styles.emptyButtonText}>Browse Menu</Text>

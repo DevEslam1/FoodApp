@@ -2,7 +2,6 @@ import { Link, useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
@@ -22,8 +21,6 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const passwordInputRef = useRef<TextInput>(null);
-  const canLogin = email.trim().length > 0 && password.trim().length > 0;
-
   const handleLogin = () => {
     Keyboard.dismiss();
     router.replace("/home");

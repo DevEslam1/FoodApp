@@ -31,6 +31,15 @@ A professional, production-ready food delivery application built with **React Na
 - **Tactile Engagement**: Extensive use of `expo-haptics` for every critical action (adding items, selecting saved data, confirming orders).
 - **Smooth Transitions**: Spring-based layout animations using `react-native-reanimated` for FAB presence and form expansion.
 
+### 🗺️ Maps, Tracking & Location Services
+- **Location Detection**: One-tap "Detect My Location" at checkout using `expo-location` to automatically populate street and city details.
+- **Interactive Map Previews**: Displays accurate Google Maps pin droplets for delivery destinations during checkout.
+- **Live Order Tracking**: Dedicated tracking interface featuring real-time simulated driver movement, dynamic polylines between the restaurant and the user, and an animated bottom-up info sheet.
+
+### 🔔 Smart Notification System
+- **Real-time Push Alerts**: Implemented local push notifications via `expo-notifications` for crucial updates ("Order Confirmed", "Out for Delivery", "Driver Nearby").
+- **Deep Linking Navigation**: Tapping any delivery notification automatically routes the user directly to the live Order Tracking screen via Expo Router deep links.
+
 ### 🌐 Live Data Integration
 - **Hybrid Data Source**: Combines local high-resolution UI assets with live remote recipes fetched from DummyJSON API via Axios.
 - **Fail-safe Design**: Automatic fallback to seeded local data in case of network failures, ensuring zero downtime for users.
@@ -52,6 +61,8 @@ The project is structured according to **Clean Architecture** principles to sepa
 - **Networking**: Axios
 - **Animation**: React Native Reanimated / Animated API
 - **Feedback**: Expo Haptics
+- **Maps & Location**: React Native Maps, Expo Location
+- **Notifications**: Expo Notifications
 - **Styling**: Vanilla StyleSheet (Flexbox)
 
 ## 📁 Project Structure
@@ -75,9 +86,20 @@ src/
 npm install
 ```
 
-### 2. Start the development server
+### 2. Configure Native Modules
+Because this project utilizes Native dependencies (Google Maps and Expo Notifications), **it cannot run in the generic Expo Go app**. 
+
+1. Add your Google Maps API Keys to `app.json`.
+2. Generate the native directories:
+   ```bash
+   npx expo prebuild
+   ```
+
+### 3. Start the Development Client
 ```bash
-npx expo start
+npx expo run:ios
+# OR
+npx expo run:android
 ```
 
 ## 📜 Validation

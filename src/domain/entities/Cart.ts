@@ -17,6 +17,8 @@ export interface Address {
   building: string;
   floor: string;
   apartment: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface Order {
@@ -30,4 +32,8 @@ export interface Order {
   address: Address;
   createdAt: string;
   estimatedMinutes: number;
+  driverLocation?: {
+    latitude: number;
+    longitude: number;
+  };
 }

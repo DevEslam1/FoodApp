@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ingredientImageSources, menuVisualSources } from "@/constants/menuAssets";
 import { useAppDispatch, useAppSelector } from "@/src/presentation/state/hooks";
 import { selectSelectedItemById, toggleFavorite } from "@/src/presentation/state/menuSlice";
-import { addToCart, selectCartItemCount } from "@/src/presentation/state/cartSlice";
+import { addToCart } from "@/src/presentation/state/cartSlice";
 import { ProductAddOn, ProductSize } from "@/src/domain/entities/Menu";
 import FloatingCartButton from "@/src/presentation/components/FloatingCartButton";
 
@@ -24,7 +24,6 @@ export default function FoodDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const dispatch = useAppDispatch();
   const item = useAppSelector((state) => (id ? selectSelectedItemById(state, id) : undefined));
-  const cartCount = useAppSelector(selectCartItemCount);
   const [quantity, setQuantity] = useState(1);
   const [addedFeedback, setAddedFeedback] = useState(false);
   const [selectedSize, setSelectedSize] = useState<ProductSize | undefined>(item?.availableSizes?.[0]);

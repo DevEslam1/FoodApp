@@ -10,11 +10,13 @@ import {
   Text,
   TouchableOpacity,
   View,
-  FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Animated, { FadeInDown, FadeInRight, Layout } from "react-native-reanimated";
+import Animated, { FadeInDown, Layout, FadeIn } from "react-native-reanimated";
 import { useDispatch, useSelector } from "react-redux";
+import * as Location from "expo-location";
+import MapView, { Marker } from "react-native-maps";
 
 import CustomInput from "@/src/presentation/components/CustomInput";
 import { checkout, selectCartTotals } from "@/src/presentation/state/cartSlice";
@@ -35,7 +37,11 @@ export default function CheckoutScreen() {
     building: "",
     floor: "",
     apartment: "",
+    latitude: undefined,
+    longitude: undefined,
   });
+
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
   // Payment State
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
@@ -58,7 +64,44 @@ export default function CheckoutScreen() {
       building: saved.building,
       floor: saved.floor,
       apartment: saved.apartment,
+      latitude: undefined,
+      longitude: undefined,
     });
+  };
+
+  const handleDetectLocation = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setIsLoadingLocation(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        alert("Permission to access location was denied");
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const geocodeList = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+
+      if (geocodeList.length > 0) {
+        const place = geocodeList[0];
+        setAddress({
+          ...address,
+          governorate: place.region || "",
+          city: place.city || place.subregion || "",
+          street: place.street || place.name || "",
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+        setSelectedAddressId(null);
+      }
+    } catch (error) {
+      alert("Could not detect location. Please try again.");
+    } finally {
+      setIsLoadingLocation(false);
+    }
   };
 
   const handleSelectSavedCard = (card: SavedCard) => {
@@ -129,7 +172,17 @@ export default function CheckoutScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           {/* Section: Delivery Address */}
           <Animated.View entering={FadeInDown.delay(100)} style={styles.section}>
-            <Text style={styles.sectionTitle}>Delivery Address (Egypt)</Text>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionTitle}>Delivery Address (Egypt)</Text>
+              <TouchableOpacity style={styles.detectBtn} onPress={handleDetectLocation}>
+                {isLoadingLocation ? (
+                  <ActivityIndicator size="small" color="#F4A22A" style={{ marginRight: 4 }} />
+                ) : (
+                  <Ionicons name="location" size={16} color="#F4A22A" />
+                )}
+                <Text style={styles.detectBtnText}>Detect Location</Text>
+              </TouchableOpacity>
+            </View>
             
             <ScrollView 
               horizontal 
@@ -164,6 +217,46 @@ export default function CheckoutScreen() {
                 <Text style={styles.chipText}>New</Text>
               </TouchableOpacity>
             </ScrollView>
+
+            {address.latitude && address.longitude && (
+              <Animated.View entering={FadeIn} style={styles.mapPreviewContainer}>
+                <MapView
+                  style={styles.mapPreview}
+                  initialRegion={{
+                    latitude: address.latitude,
+                    longitude: address.longitude,
+                    latitudeDelta: 0.005,
+                    longitudeDelta: 0.005,
+                  }}
+                  scrollEnabled={false}
+                  zoomEnabled={false}
+                >
+                  <Marker
+                    coordinate={{
+                      latitude: address.latitude,
+                      longitude: address.longitude,
+                    }}
+                    draggable
+                    onDragEnd={async (e) => {
+                       const newCoords = e.nativeEvent.coordinate;
+                       const geocodeList = await Location.reverseGeocodeAsync(newCoords);
+                       if (geocodeList.length > 0) {
+                          const place = geocodeList[0];
+                          setAddress({
+                            ...address,
+                            street: place.street || place.name || address.street,
+                            latitude: newCoords.latitude,
+                            longitude: newCoords.longitude,
+                          });
+                       }
+                    }}
+                  />
+                </MapView>
+                <View style={styles.mapOverlayHint}>
+                  <Text style={styles.mapHintText}>Drag pin to fine-tune</Text>
+                </View>
+              </Animated.View>
+            )}
             
             <View style={styles.row}>
               <View style={{ flex: 1.2, marginRight: 10 }}>
@@ -393,7 +486,26 @@ const styles = StyleSheet.create({
     color: "#B7AC9D",
     textTransform: "uppercase",
     letterSpacing: 1,
+  },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 16,
+  },
+  detectBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FDF5E6",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 99,
+  },
+  detectBtnText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#F4A22A",
+    marginLeft: 4,
   },
   row: {
     flexDirection: "row",
@@ -445,6 +557,32 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     backgroundColor: "#FFF",
+  },
+  mapPreviewContainer: {
+    marginTop: 8,
+    marginBottom: 16,
+    borderRadius: 16,
+    overflow: "hidden",
+    height: 120,
+    borderWidth: 1,
+    borderColor: "#EEE8DE",
+  },
+  mapPreview: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  mapOverlayHint: {
+    position: "absolute",
+    bottom: 8,
+    alignSelf: "center",
+    backgroundColor: "rgba(0,0,0,0.6)",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 99,
+  },
+  mapHintText: {
+    fontSize: 10,
+    color: "#FFF",
+    fontWeight: "600",
   },
   cardForm: {
     marginTop: 16,

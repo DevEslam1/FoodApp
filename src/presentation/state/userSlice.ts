@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { UserProfile, SavedAddress, SavedCard } from "@/src/domain/entities/User";
+import { createSlice } from "@reduxjs/toolkit";
+import { UserProfile } from "@/src/domain/entities/User";
 import { RootState } from "./index";
 
 interface UserState {

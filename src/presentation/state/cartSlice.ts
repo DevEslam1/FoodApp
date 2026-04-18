@@ -1,6 +1,6 @@
 import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { manageCartUseCase } from "../../dependencies";
-import { Address, CartItem, Order, PaymentMethod } from "../../domain/entities/Cart";
+import { Address, CartItem, Order, OrderStatus, PaymentMethod } from "../../domain/entities/Cart";
 import { MenuItem, ProductAddOn, ProductSize } from "../../domain/entities/Menu";
 import type { RootState } from "./index";
 
@@ -72,6 +72,22 @@ const cartSlice = createSlice({
     clearLastOrder(state) {
       state.lastOrder = null;
     },
+
+    updateOrderStatus(state, action: PayloadAction<{ orderId: string; status: OrderStatus }>) {
+      const order = state.orders.find((o) => o.id === action.payload.orderId);
+      if (order) order.status = action.payload.status;
+      if (state.lastOrder?.id === action.payload.orderId) {
+        state.lastOrder.status = action.payload.status;
+      }
+    },
+
+    updateDriverLocation(state, action: PayloadAction<{ orderId: string; latitude: number; longitude: number }>) {
+      const order = state.orders.find((o) => o.id === action.payload.orderId);
+      if (order) order.driverLocation = { latitude: action.payload.latitude, longitude: action.payload.longitude };
+      if (state.lastOrder?.id === action.payload.orderId) {
+        state.lastOrder.driverLocation = { latitude: action.payload.latitude, longitude: action.payload.longitude };
+      }
+    },
   },
 });
 
@@ -103,6 +119,8 @@ export const {
   checkout,
   clearCart,
   clearLastOrder,
+  updateOrderStatus,
+  updateDriverLocation,
 } = cartSlice.actions;
 
 export default cartSlice.reducer;

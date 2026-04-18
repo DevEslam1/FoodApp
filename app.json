@@ -9,9 +9,20 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyDh2jY_1U8llzRSxBsJR3F6dEmbslvl6EY"
+      },
+      "infoPlist": {
+        "UIBackgroundModes": ["location", "fetch"]
+      }
     },
     "android": {
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY_HERE"
+        }
+      },
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/pizza-icon.png",
@@ -38,6 +49,19 @@
           "dark": {
             "backgroundColor": "#000000"
           }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow FoodApp to use your location to deliver food to your exact location."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/pizza-icon.png",
+          "color": "#ffffff"
         }
       ]
     ],

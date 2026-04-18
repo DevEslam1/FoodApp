@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAppDispatch, useAppSelector } from "@/src/presentation/state/hooks";
 import { clearLastOrder, selectLastOrder } from "@/src/presentation/state/cartSlice";
+import { notificationService } from "@/src/data/services/notificationService";
 
 export default function OrderSuccessScreen() {
   const router = useRouter();
@@ -47,11 +48,19 @@ export default function OrderSuccessScreen() {
         }),
       ]),
     ]).start();
-  }, []);
+
+    if (order) {
+      notificationService.sendOrderConfirmedNotification(order.id);
+    }
+  }, [fadeAnim, order, scaleAnim, slideAnim]);
 
   const handleBackToMenu = () => {
     dispatch(clearLastOrder());
     router.replace("/home" as any);
+  };
+
+  const handleTrackOrder = () => {
+    router.replace("/order-tracking" as any);
   };
 
   return (
@@ -148,7 +157,12 @@ export default function OrderSuccessScreen() {
           </Animated.View>
 
           {/* Bottom Button */}
-          <Animated.View style={{ opacity: fadeAnim }}>
+          <Animated.View style={[{ opacity: fadeAnim }, styles.buttonsContainer]}>
+            <Pressable onPress={handleTrackOrder} style={styles.trackButton}>
+              <Ionicons name="map-outline" size={20} color="#FFF" />
+              <Text style={styles.trackButtonText}>Track My Order</Text>
+            </Pressable>
+
             <Pressable onPress={handleBackToMenu} style={styles.menuButton}>
               <Text style={styles.menuButtonText}>Back to Menu</Text>
               <Ionicons name="arrow-forward" size={18} color="#231E19" />
@@ -352,10 +366,30 @@ const styles = StyleSheet.create({
   },
 
   // Button
+  buttonsContainer: {
+    marginTop: 36,
+    width: "100%",
+    gap: 12,
+  },
+  trackButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2B2521",
+    borderRadius: 999,
+    paddingHorizontal: 28,
+    paddingVertical: 16,
+    gap: 8,
+  },
+  trackButtonText: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#FFF",
+  },
   menuButton: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 36,
+    justifyContent: "center",
     backgroundColor: "#F8CB4B",
     borderRadius: 999,
     paddingHorizontal: 28,

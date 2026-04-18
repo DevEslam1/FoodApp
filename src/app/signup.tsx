@@ -2,7 +2,6 @@ import { Link, useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
