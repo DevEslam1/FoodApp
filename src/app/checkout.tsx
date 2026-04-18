@@ -29,6 +29,14 @@ export default function CheckoutScreen() {
   const totals = useSelector(selectCartTotals);
   const user = useSelector(selectUserProfile);
 
+  if (!user) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#F4A22A" />
+      </View>
+    );
+  }
+
   // Address State
   const [address, setAddress] = useState<Address>({
     governorate: "",

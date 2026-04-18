@@ -16,8 +16,14 @@ import AuthCard from "@/src/presentation/components/AuthCard";
 import AuthDecoration from "@/src/presentation/components/AuthDecoration";
 import CustomInput from "@/src/presentation/components/CustomInput";
 
+import { useAppDispatch, useAppSelector } from "@/src/presentation/state/hooks";
+import { signUpAction, selectAuthStatus } from "@/src/presentation/state/userSlice";
+
 export default function SignupScreen() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { loading, error, isAuthenticated } = useAppSelector(selectAuthStatus);
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,15 +32,29 @@ export default function SignupScreen() {
   const passwordInputRef = useRef<TextInput>(null);
   const confirmPasswordInputRef = useRef<TextInput>(null);
 
+  // Redirect if already authenticated (auto-login after signup)
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/home");
+    }
+  }, [isAuthenticated, router]);
+
   const canSignup =
     fullName.trim().length > 0 &&
     email.trim().length > 0 &&
-    password.trim().length > 0 &&
-    confirmPassword.trim().length > 0;
+    password.trim().length >= 6 &&
+    confirmPassword === password &&
+    !loading;
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     Keyboard.dismiss();
-    router.replace("/home");
+    if (!canSignup) return;
+
+    await dispatch(signUpAction({ 
+      email, 
+      password, 
+      name: fullName.trim() 
+    }));
   };
 
   return (
@@ -53,6 +73,8 @@ export default function SignupScreen() {
             minHeight={640}
             onBackPress={() => router.back()}
             title="Create Account"
+            subtitle={error || undefined}
+            subtitleStyle={error ? { color: "#F06B62", fontWeight: "700" } : undefined}
             footer={
               <View style={styles.footer}>
                 <Text style={styles.footerText}>Already have an account? </Text>
@@ -138,6 +160,7 @@ export default function SignupScreen() {
 
               <AuthButton
                 disabled={!canSignup}
+                loading={loading}
                 label="SIGN UP"
                 onPress={handleSignup}
                 style={styles.buttonContainer}

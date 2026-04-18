@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 interface AuthCardProps {
   title: string;
   subtitle?: string;
+  subtitleStyle?: object;
   minHeight?: number;
   onBackPress?: () => void;
   footer?: React.ReactNode;
@@ -15,6 +16,7 @@ interface AuthCardProps {
 export default function AuthCard({
   title,
   subtitle,
+  subtitleStyle,
   minHeight = 580,
   onBackPress,
   footer,
@@ -40,7 +42,7 @@ export default function AuthCard({
 
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
-        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        {subtitle ? <Text style={[styles.subtitle, subtitleStyle]}>{subtitle}</Text> : null}
       </View>
 
       <View style={styles.body}>{children}</View>

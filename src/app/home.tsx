@@ -65,7 +65,9 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
-            <Image source={profileImageSource} style={styles.avatar} />
+            <Pressable onPress={() => router.push("/profile")}>
+              <Image source={profileImageSource} style={styles.avatar} />
+            </Pressable>
 
             <Pressable onPress={() => router.push("/favorites" as any)} style={styles.menuWrapper}>
               <Ionicons color="#55504B" name="heart-outline" size={26} />
